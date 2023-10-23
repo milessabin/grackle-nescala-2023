@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Grackle: Functional GraphQL for the Typelevel stack &mdash; Typelevel Summit 2023</title>
+  <link href='https://fonts.googleapis.com/css?family=Mulish' rel='stylesheet'>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <style type="text/css">
+    body {
+      font-family: 'Mulish';
+    }
+    h1 {
+      font-weight: 600;
+    }
+    h2, h3 {
+      font-weight: 400;
+    }
+    .remark-code, .remark-inline-code {
+      font-family: 'DejaVu Sans Mono';
+    }
+
+    .remark-slide-content {
+      background-repeat: no-repeat !important;
+    }
+    .typelevel {
+      background: white;
+      color: #21303F;
+      font-size: 180%;
+    }
+    .typelevel a {
+      color: #21303F;
+      text-decoration: none;
+    }
+    .red {
+      color: red;
+    }
+    .green {
+      color: green;
+    }
+    .typelevel h1 {
+      text-align: center;
+    }
+    .what-logo {
+      background-size: contain;
+      background-position: center;
+    }
+    .centered {
+      margin-top: 15%;
+    }
+    .text-centered {
+      margin-left: 22%;
+    }
+    .projects-centered {
+      margin-top: 10%;
+    }
+    .projects-centered table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .projects-centered tr {
+    }
+    .projects-centered td {
+      text-align: center;
+      font-size: 80%;
+      padding-top: 0.5em;
+    }
+    .centeredimg {
+      margin-top: 4%;
+    }
+    .summit h1 {
+      text-shadow: rgba(255,255,255,.1) -1px -1px 1px, rgba(0,0,0,.5) 1px 1px 1px;
+    }
+    .hack-the-tower h2 {
+      margin-top: 40vh;
+    }
+    .sponsors {
+      background: white;
+    }
+    .sponsors img {
+      max-height: 7vh;
+    }
+    .cats {
+      background: white;
+    }
+    .cats img {
+      height: 60vh;
+    }
+    .title > h1 {
+      margin-top: -5%;
+      font-size: 200%;
+    }
+    .title > h2 {
+      font-size: 150%;
+    }
+    .title > h3  {
+      font-size: 100%;
+    }
+    .title img {
+      margin-bottom: -20%;
+      height: 5em;
+    }
+    .exclaim h1 {
+      font-size: 600%
+    }
+    ol {
+      margin: 0;
+      padding: 0;
+      line-height: 60px;
+      list-style-type: none;
+    }
+    ul > li {
+      margin: 3% 0 3% 0;
+      padding: 0;
+    }
+    blockquote {
+      font-size: 200%;
+    }
+    .wide {
+      margin: 0;
+      padding: 0;
+    }
+    .hero {
+      background-image: url(img/background-pattern.svg);
+      webkit-background-size: cover;
+      -moz-background-size: cover;
+      -o-background-size: cover;
+      background-size: cover;
+    }
+  </style>
+</head>
+<body>
+  <textarea id="source">
+    name: inverse
+    layout: true
+    class: typelevel
+    ---
+    class: center, middle, hero
+
+    .title[
+      # Grackle: Functional GraphQL for the Typelevel stack
+
+      ## Miles Sabin, [@milessabin@types.pl](https://types.pl/@milessabin)
+
+      [![Typelevel logo](img/logo.svg)](http://typelevel.org)
+    ]
+
+    ---
+    # Grackle at ITV &mdash; Content metadata
+
+    ---
+    # Grackle at ITV &mdash; News &amp; Distribution
+
+    ---
+    # Grackle at Aura/Gemini
+
+    ---
+    class: center, middle
+
+    # What is GraphQL?
+
+    ---
+    # What is GraphQL?
+
+    + Created by Facebook
+
+    + Open API standard (https://graphql.org/)
+
+    + Structured query language
+
+    + Safe, flexible and evolvable alternative to REST
+
+    + Requests/responses defined by strongly typed schemas
+
+    + Clients choose what to fetch
+
+    + Server returns response with the same shape as queries
+
+    + Clients can modify data and subscribe to notifications (if schema allows)
+
+    ---
+    class: center, middle
+
+    # GraphQL Demo
+
+    ---
+    class: center, middle
+
+    # What is Grackle?
+
+    ---
+    # What is Grackle?
+
+    + GraphQL server powered by cats, cats-effect, and circe
+
+    + Currently supports in-memory and database backed models
+
+    + For database backed models, queries are compiled to SQL
+
+    + Doobie and Skunk integrations
+
+    + Supports GraphQL queries, mutations and subscriptions
+
+    + Multiple schemas, mappings and models can be composed
+
+    + Work sponsored Aura/Gemini and ITV
+
+    ---
+    # What is Grackle?
+
+    + Grackle is structured as a compiler/interpreter
+
+    + Queries are compiled into an internal query algebra
+
+      + These are values which can be manipulated
+
+    + The query is linked to backing data via,
+
+      + The compiled query algebra term
+
+      + An elaboration phase which gives meaning to application specifics
+
+      + A backend specific declarative mapping
+
+      + The final query algebra term is interpreted wrt a cursor to generate the result
+
+    + The query algebra may be further compiled in a backend specific way as needed to materialize data
+
+      + In particular it can be compiled to efficient SQL
+
+    ---
+    class: center, middle
+
+    # In-memory models
+
+    ---
+    # In-memory models
+
+    ```graphql
+    type Query {
+      character(id: ID!): Character
+
+      # ...
+    }
+
+
+
+    interface Character {
+      name: String!
+
+      # ...
+    }
+    ```
+
+    ---
+    # In-memory models
+
+    ```graphql
+    query {
+      character(id: 1000) {
+        name
+      }
+    }
+    ```
+
+    ---
+    # In-memory models
+
+    ```scala
+    UntypedSelect(
+      "character",
+      None,
+      List(IntBinding("id", 1000)),
+      Nil,
+      UntypedSelect(
+        "name", None, Nil, Nil, Empty
+      )
+    )
+    ```
+
+    ---
+    # In-memory models
+
+    ```scala
+    case class UntypedSelect(
+      name: String, alias: Option[String],
+      args: List[Binding], directives: List[Directive],
+      child: Query
+    )
+    case class Select(name: String, alias: Option[String], child: Query)
+    case class Group(queries: List[Query])
+    case class Unique(child: Query)
+    case class Filter(pred: Predicate, child: Query)
+    case class Introspect(schema: Schema, child: Query)
+    case class Environment(env: Env, child: Query)
+    case class Narrow(subtpe: TypeRef, child: Query)
+    case class Limit(num: Int, child: Query)
+    case class Offset(num: Int, child: Query)
+    case class OrderBy(selections: OrderSelections, child: Query)
+    case class Count(child: Query)
+    case class TransformCursor(f: Cursor => Result[Cursor], child: Query)
+    case class Component[F[_]](mapping: Mapping[F], ...)
+    case class Effect[F[_]](handler: EffectHandler[F], child: Query)
+    case object Empty
+    ```
+
+    ---
+    # In-memory models
+
+    ```scala
+    Select(
+      "character",
+      None,
+      Unique(
+        Filter(
+          Eql(CharacterType / "id", Const("1000")),
+          Select("name", None, Empty)
+        )
+      )
+    )
+    ```
+
+    ---
+    # In-memory models
+
+    ```scala
+    ObjectMapping(
+      tpe = QueryType,
+      fieldMappings =
+        List(
+          GenericField("character", characters)
+        )
+    )
+    ```
+
+    ---
+    # In-memory models
+
+    ```json
+    {
+      "data": {
+        "character": {
+          "name": "Luke Skywalker"
+        }
+      }
+    }
+    ```
+
+    ---
+    class: center, middle
+
+    # DB backed models
+
+    ---
+    # DB backed models
+
+    ```graphql
+    type Query {
+      country(code: String): Country
+    }
+
+    type Country {
+      name: String!
+      cities: [City!]!
+    }
+
+    type City {
+      name: String!
+      population: Int!
+    }
+    ```
+
+    ---
+    # DB backed models
+
+    ```graphql
+    query {
+      country(code: "GBR") {
+        name
+        cities {
+          name
+        }
+      }
+    }
+    ```
+
+    ---
+    # DB backed models
+
+    ```scala
+    Select(
+      "country", None,
+      Unique(
+        Filter(Eql(CountryType / "code", Const("GBR")),
+          Group(
+            Select("name", None, Empty),
+            Select("cities", None,
+              Select("name", None, Empty)
+            )
+          )
+        )
+      )
+    )
+    ```
+
+    ---
+    # DB backed models
+
+    ```sql
+    CREATE TABLE country
+    (
+      code character(3) NOT NULL,
+      name text         NOT NULL
+    );
+
+    CREATE TABLE city
+    (
+      id          integer      NOT NULL,
+      name        text         NOT NULL,
+      countrycode character(3) NOT NULL
+    );
+    ```
+
+    ---
+    # DB backed models
+
+    ```scala
+    object country extends TableDef("country") {
+      val code        = col("code", Meta[String])
+      val name        = col("name", Meta[String])
+    }
+
+    object city extends TableDef("city") {
+      val id          = col("id", Meta[Int])
+      val countrycode = col("countrycode", Meta[String])
+      val name        = col("name", Meta[String])
+    }
+    ```
+
+    ---
+    # DB backed models
+
+    ```scala
+    ObjectMapping(
+      tpe = CountryType,
+      fieldMappings = List(
+        SqlField("code",        country.code, key = true),
+        SqlField("name",        country.name),
+        SqlObject("cities",     Join(country.code, city.countrycode))
+      )
+    )
+    ObjectMapping(
+      tpe = CityType,
+      fieldMappings = List(
+        SqlField("id",          city.id, key = true, hidden = true),
+        SqlField("countrycode", city.countrycode, hidden = true),
+        SqlField("name",        city.name)
+      )
+    )
+    ```
+
+    ---
+    # DB backed models
+
+    ```sql
+    SELECT
+      city.id,
+      city.name,
+      country.code,
+      country.name
+    FROM
+      country
+      LEFT JOIN city ON (city.countrycode = country.code)
+    WHERE
+      country.code = 'GBR';
+    ```
+
+    ---
+    # DB backed models
+
+    ```json
+    {
+      "data": {
+        "country": {
+          "name": "United Kingdom",
+          "cities": [
+            { "name": "Gloucester" },
+            { "name": "Ipswich" },
+            { "name": "Rochdale" },
+            …
+          ]
+        }
+      }
+    }
+    ```
+
+    ---
+    class: center, middle
+
+    # Project status
+
+    ---
+    # Project status
+
+    + Current version 1.0.0-M1 (version 1.0 soon!)
+
+    + Still evolving but battle tested on highly visible, high traffic sites
+
+    + Lots of scope for contributions … come and join us!
+
+    ---
+    class: center, middle
+
+    # Questions?
+
+    ---
+    class: center, middle, hero
+
+    .title[
+      # Thank You
+      ## Miles Sabin, [@milessabin@types.pl](https://types.pl/@milessabin)
+      ### http://typelevel.org/grackle
+
+      [![Typelevel logo](img/logo.svg)](http://typelevel.org)
+    ]
+  </textarea>
+  <script src="https://remarkjs.com/downloads/remark-latest.min.js">
+  </script>
+  <script>
+    var slideshow = remark.create({
+      //ratio: '4:3',
+      ratio: '16:9',
+
+
+      slideNumberFormat: '',
+      // Or you might like the page number bottom right:
+      // slideNumberFormat: '%current%',
+
+      // Default: use ```sql ..``` etc to override
+      highlightLanguage: 'scala',
+
+      // Plausible style for blue background:
+      highlightStyle: 'github',
+
+      // These also look reasonable:
+      //highlightStyle: 'default',
+      //highlightStyle: 'ascetic',
+      //highlightStyle: 'vs',
+
+      //Good styles, but don't really work with a blue background:
+      //highlightStyle: 'ir_black',
+      //highlightStyle: 'dark',
+
+      highlightLines: true,
+      highlightSpans: true,
+      });
+  </script>
+</body>
+</html>
