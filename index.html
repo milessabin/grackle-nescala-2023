@@ -126,6 +126,9 @@
       -o-background-size: cover;
       background-size: cover;
     }
+    .gracklePhoto img {
+      width: 38%;
+    }
     .screenshot1 img {
       width: 100%;
       clip-path: inset(0 0 20% 0);
@@ -161,6 +164,11 @@
     class: center, middle
 
     # Introducing Grackle
+
+    ---
+    class: center, middle
+
+    .gracklePhoto[![Common Grackle](img/Common_Grackle.jpg)]
 
     ---
     # Introducing Grackle
@@ -219,29 +227,28 @@
     ---
     # What is Grackle?
 
-    + Grackle is an Apache 2.0 licensed Typelevel project
-
     + GraphQL server powered by cats, cats-effect, fs2 and http4s
 
     + Supports GraphQL queries, mutations and subscriptions
 
-    + Currently supports in-memory and database backed models
+    + Has an abstract model of data sources via mappings and cursors
 
-    + For database backed models, queries are compiled to SQL
+      + Supports in-memory, DB backed and effectful data sources
 
     ---
     # What is Grackle?
 
     + Grackle is structured as a compiler/interpreter
 
-    + Queries are type-checked against the GraphQL schemas
+    + Queries are type-checked against the GraphQL schema
 
     + Queries are compiled into an internal query algebra
 
-    + The query algebra may be further compiled in a backend-specific way as needed to materialize data
+    + The query algebra may be further compiled in a backend-specific way to materialize data
 
       + In particular it can be compiled to efficient SQL
 
+      + Currently supports Postgres via Doobie or Skunk
 
     ---
     # What is Grackle?
@@ -252,9 +259,11 @@
 
       + An elaboration phase which gives meaning to application specifics
 
-      + A backend specific declarative mapping
+      + A backend-specific declarative mapping
 
-      + The final query algebra term is interpreted wrt a cursor to generate the result
+      + A backend-specific cursor into the backing data
+
+    + The elaborated query algebra term is executed, driving the cursor, generating the result
 
     ---
     class: center, middle
@@ -295,21 +304,6 @@
     # In-memory models
 
     ```scala
-    UntypedSelect(
-      "character",
-      None,
-      List(IntBinding("id", 1000)),
-      Nil,
-      UntypedSelect(
-        "name", None, Nil, Nil, Empty
-      )
-    )
-    ```
-
-    ---
-    # In-memory models
-
-    ```scala
     case class UntypedSelect(
       name: String, alias: Option[String],
       args: List[Binding], directives: List[Directive],
@@ -336,6 +330,31 @@
     # In-memory models
 
     ```scala
+    UntypedSelect(
+      "character",
+      None,
+      List(IntBinding("id", 1000)),
+      Nil,
+      UntypedSelect(
+        "name", None, Nil, Nil, Empty
+      )
+    )
+    ```
+
+    ---
+    # In-memory models
+
+    ```scala
+    case (QueryType, "character", List(Binding("id", IDValue(id)))) =>
+      Elab.transformChild { child =>
+        Unique(Filter(Eql(CharacterType / "id", Const(id)), child))
+      }
+    ```
+
+    ---
+    # In-memory models
+
+    ```scala
     Select(
       "character",
       None,
@@ -352,6 +371,10 @@
     # In-memory models
 
     ```scala
+    val characters: List[Character] = ...
+
+    ...
+
     ObjectMapping(
       tpe = QueryType,
       fieldMappings =
@@ -437,8 +460,8 @@
     ```sql
     CREATE TABLE country
     (
-      code character(3) NOT NULL,
-      name text         NOT NULL
+      code        character(3) NOT NULL,
+      name        text         NOT NULL
     );
 
     CREATE TABLE city
@@ -515,7 +538,7 @@
             { "name": "Gloucester" },
             { "name": "Ipswich" },
             { "name": "Rochdale" },
-            …
+            ...
           ]
         }
       }
@@ -530,11 +553,55 @@
     ---
     # Project status
 
+    Things I haven't had time to talk about today ...
+
+    + Nested effects with batching
+
+    + Composition of mappings and schemas
+
+    ---
+    # Project status
+
+    Things I haven't had time to talk about today ...
+
+    + Grackle has full support for custom query and schema directives
+
+      + Examples in the repo demonstrate authentication and authorization
+
+    + Query algebra and elaboration model supports implementation of things that go beyond the GraphQL spec, eg.
+
+      + Paging
+
+      + Filter/attribute cascading
+
+    ---
+    # Project status
+
+    + Grackle is an Apache 2.0 licensed Typelevel project
+
+      + https://github.com/typelevel/grackle
+
+    + Available for Scala 2/3 and for Scala.js and Scala Native
+
     + Current version 1.0.0-M1 (version 1.0 soon!)
 
     + Still evolving but battle tested on highly visible, high traffic sites
 
-    + Lots of scope for contributions … come and join us!
+
+    ---
+    # Project status
+
+    + Demo and tutorial
+
+      + https://typelevel.org/grackle
+
+    + Lots of scope for contributions ... come and join us!
+
+      + Compilers are fun!
+
+      + More backends (eg. KV stores, MongoDB, ElasticSearch, etc.)
+
+      + Lots of scope for building higher level abstractions
 
     ---
     class: center, middle
