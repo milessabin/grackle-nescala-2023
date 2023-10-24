@@ -126,11 +126,24 @@
       -o-background-size: cover;
       background-size: cover;
     }
+    .screenshot1 img {
+      width: 100%;
+      clip-path: inset(0 0 20% 0);
+    }
+    .screenshot2 img {
+      width: 100%;
+      clip-path: inset(0 0 5% 0);
+    }
+    .screenshot3 img {
+      margin-left: 5%;
+      width: 90%;
+      clip-path: inset(0 0 10% 0);
+    }
   </style>
 </head>
 <body>
+  <!--  .screenshot[![ITVX Homepage](img/www.itv.com_.png)] -->
   <textarea id="source">
-    name: inverse
     layout: true
     class: typelevel
     ---
@@ -145,13 +158,33 @@
     ]
 
     ---
+    class: center, middle
+
+    # Introducing Grackle
+
+    ---
+    # Introducing Grackle
+
+    + GraphQL is a query language for APIs
+
+    + Grackle is a GraphQL server built on the Typelevel stack
+
+    + Work sponsored by ITV and Aura/Gemini over the last four years
+
+    ---
     # Grackle at ITV &mdash; Content metadata
+
+    .screenshot1[![ITVX Homepage](img/www.itv.com_.png)]
 
     ---
     # Grackle at ITV &mdash; News &amp; Distribution
 
+    .screenshot2[![ITV News](img/www.itv.com_news_topic_climate.png)]
+
     ---
     # Grackle at Aura/Gemini
+
+    .screenshot3[![Aura/Gemini Homepage](img/www.aura-astronomy.org_centers_nsfs-oir-lab_gemini-observatory_.png)]
 
     ---
     class: center, middle
@@ -161,21 +194,17 @@
     ---
     # What is GraphQL?
 
-    + Created by Facebook
+    + Open API standard Created by Facebook (https://graphql.org/)
 
-    + Open API standard (https://graphql.org/)
-
-    + Structured query language
+    + Structured query and update language for APIs
 
     + Safe, flexible and evolvable alternative to REST
 
-    + Requests/responses defined by strongly typed schemas
+      + Requests/responses defined by strongly typed schemas
 
-    + Clients choose what to fetch
+      + Clients choose what to fetch
 
-    + Server returns response with the same shape as queries
-
-    + Clients can modify data and subscribe to notifications (if schema allows)
+      + Server returns response with the same shape as queries
 
     ---
     class: center, middle
@@ -190,28 +219,32 @@
     ---
     # What is Grackle?
 
-    + GraphQL server powered by cats, cats-effect, and circe
+    + Grackle is an Apache 2.0 licensed Typelevel project
+
+    + GraphQL server powered by cats, cats-effect, fs2 and http4s
+
+    + Supports GraphQL queries, mutations and subscriptions
 
     + Currently supports in-memory and database backed models
 
     + For database backed models, queries are compiled to SQL
-
-    + Doobie and Skunk integrations
-
-    + Supports GraphQL queries, mutations and subscriptions
-
-    + Multiple schemas, mappings and models can be composed
-
-    + Work sponsored Aura/Gemini and ITV
 
     ---
     # What is Grackle?
 
     + Grackle is structured as a compiler/interpreter
 
+    + Queries are type-checked against the GraphQL schemas
+
     + Queries are compiled into an internal query algebra
 
-      + These are values which can be manipulated
+    + The query algebra may be further compiled in a backend-specific way as needed to materialize data
+
+      + In particular it can be compiled to efficient SQL
+
+
+    ---
+    # What is Grackle?
 
     + The query is linked to backing data via,
 
@@ -222,10 +255,6 @@
       + A backend specific declarative mapping
 
       + The final query algebra term is interpreted wrt a cursor to generate the result
-
-    + The query algebra may be further compiled in a backend specific way as needed to materialize data
-
-      + In particular it can be compiled to efficient SQL
 
     ---
     class: center, middle
