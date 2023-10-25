@@ -1,12 +1,7 @@
-# Adding kind-polymorphism to Scala
+# Grackle - Functional GraphQL for the Typelevel Stack
 
-Slides from my talk at Scala Days Berlin, 2018
-
-The slides are online [here](http://milessabin.com/talks/2018/05/16/kind-polymorphism-scala-days-2018). Video should be
-available later.
+Slides from my talk at the Typelevel Summit/NEScala Symposium 2023.
 
 ### Resources
 
-* Typelevel [project site](http://typelevel.org).
-* Typelevel Scala [on github](http://github.com/typelevel/scala).
-* Gitter discussion on [typelevel/general](http://gitter.im/typelevel/scala).
+* Grackle [project site](http://github.com/typelevel/grackle).
